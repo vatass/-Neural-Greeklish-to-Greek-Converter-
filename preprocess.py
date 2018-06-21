@@ -2,31 +2,88 @@
 import os 
 
 
-def preprocess(file1,file2,i):  
+def normalizelines(filee,outname):  
 
-    f1=open(file1,'r') 
-    f2=open(file2,'r')
-    if i==0:
-        fileout=open('gr-greng.txt','w') 
-    else: 
-        fileout=open('greng_test.txt','w') 
-
-    for line1,line2 in zip(f1,f2): 
-        print(line1) 
-        print(line2) 
-        totalline=line1.rstrip() + '\t' + line2.rstrip() + '\n'  
-        fileout.write(totalline) 
+    f=open(filee,'r')
+    fileout = open(outname, 'w') 
+    for line in f: 
+        print(line) 
+        normalizedline = line.lower() 
+        fileout.write(normalizedline) 
 
 
     fileout.close() 
+ 
 
 
-dirr = 'msgs/' 
-#file_path1 = '/files/greng_train.txt' 
-#file_path2 = '/files/greng_test.txt' 
-#newdir1 = os.path.dirname(file_path1) 
-#newdir2 = os.path.dirname(file_path2)  
-preprocess('msgs/train_greng.txt','msgs/train_gr.txt',0) 
-#preprocess('msgs/test_greng.txt', 'msgs/test_gr.txt',1)  
+class Lang: 
+    def __init__(self,name): 
+        self.name=name 
+        self.word2index={}
+        self.index2word={0:"SOS",1:"EOS"} 
+        self.n_words = 2
 
+    def addSentence(self,sentence):
+        for word in sentence.split(' '): 
+            self.addWord(word) 
+
+    def addWord(self,word):
+        if word not in self.word2index: 
+            self.word2index[word] = self.n_words
+            self.index2word[self.n_words] = word 
+            self.n_words +=1 
+
+
+def readLangs(file1,file2,langi,lango,pairs): 
+    
+    f1 = open(file1,'r') 
+    f2 = open(file2,'r') 
+
+    for line1,line2 in zip(f1,f2): 
+        pairs.append([line1.strip('\n'),line2.strip('\n') ])  
+
+    inputlang = Lang(langi) 
+    outputlang = Lang(lango)  
+    return inputlang, outputlang, pairs 
+
+
+def preparedata(file1,file2,langi,lango,pairs): 
+    pairs = [] 
+    inputlang,outputlang, pairs = readLangs(file1,file2,langi,lango,pairs) 
+
+    print("Read %s sentence pairs" % len(pairs)) 
+
+    for pair in pairs: 
+        inputlang.addSentence(pair[0]) 
+        outputlang.addSentence(pair[1]) 
+
+    print("Counted Words:") 
+    print(inputlang.name,inputlang.n_words) 
+    print(outputlang.name, outputlang.n_words) 
+
+
+
+    return inputlang, outputlang,pairs 
+
+'''
+normalizelines('msgs/train_greng.txt', 'norm_train_greng.txt')
+normalizelines('msgs/train_gr.txt', 'norm_train_gr.txt')   
+
+pairs = [] 
+inputlang, outputlang,pairs = preparedata('norm_train_greng.txt','norm_train_gr.txt','greeklish','greek') 
+
+
+print(pairs[0]) 
+print(inputlang.word2index) 
+
+'''
+
+
+
+
+
+
+
+
+ 
 
